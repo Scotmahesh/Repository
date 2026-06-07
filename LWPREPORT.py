@@ -15,30 +15,39 @@ st.write("Upload your Excel sheet below to generate payment reminders.")
 uploaded_file = st.file_uploader("Upload your Excel file here", type=["xlsx", "xls"])
 
 if uploaded_file is not None:
+    # Read Excel file normally
     df = pd.read_excel(uploaded_file)
     current_month = datetime.now().strftime("%B %Y")
     
     st.success("File uploaded successfully!")
     st.write("### Choose a dealer to send message:")
 
-    # Loop through each row to display a clean layout for your staff
+    # Loop through each row
     for index, row in df.iterrows():
         try:
-            dealer_id = str(row.iloc[1])    # Column B
-            firm_name = str(row.iloc[2])    # Column C
-            dealer_name = str(row.iloc[3])  # Column D
-            steam = str(row.iloc[10])       # Column K
-            days_30 = str(row.iloc[11])     # Column L
-            days_60 = str(row.iloc[12])     # Column M
-            days_90 = str(row.iloc[13])     # Column N
-            total = str(row.iloc[14])       # Column O
-            phone_raw = str(row.iloc[5]).strip() # Column F
+            # -------------------------------------------------------------
+            # ⚠️ IMPORTANT: MATCH THESE TO YOUR EXCEL FIRST ROW TITLES EXACTLY!
+            # If your Excel has different header names, change the text inside the quotes.
+            # -------------------------------------------------------------
+            dealer_id = str(row["Dealer ID"])    # Column B
+            firm_name = str(row["Firm Name"])    # Column C
+            dealer_name = str(row["Dealer Name"])# Column D
+            steam = str(row["steam"])            # Column K
+            days_30 = str(row["30 Days"])        # Column L
+            days_60 = str(row["60 days"])        # Column M
+            days_90 = str(row["90 days"])        # Column N
+            total = str(row["Total"])            # Column O
+            
+            # Assuming your phone number column is named "Mobile Number" or "Phone"
+            # CHANGE "Phone" to match your exact phone column header title!
+            phone_raw = str(row["Phone"]).strip() 
 
+            # Clean phone number formatting
             phone_number = "".join(filter(str.isdigit, phone_raw))
             if not phone_number.startswith("91") and len(phone_number) == 10:
                 phone_number = "91" + phone_number
 
-            # Create PDF in computer memory (safe for web)
+            # Create PDF in computer memory
             buffer = io.BytesIO()
             c = canvas.Canvas(buffer, pagesize=letter)
             c.setFont("Helvetica-Bold", 16)
@@ -76,16 +85,14 @@ if uploaded_file is not None:
             )
             
             encoded_msg = urllib.parse.quote(whatsapp_msg)
-            # Universal WhatsApp API link works on both Desktop and Mobile phones!
             whatsapp_url = f"https://whatsapp.com{phone_number}&text={encoded_msg}"
 
-            # Create a nice visual box for each dealer row
+            # Create web card layout
             with st.container():
-                col1, col2, col3 = st.columns([3, 2, 2])
+                col1, col2, col3 = st.columns()
                 with col1:
                     st.write(f"**{dealer_name}** ({firm_name})")
                 with col2:
-                    # Staff clicks this button to download the PDF to their device
                     st.download_button(
                         label=f"📥 Download PDF Ledger",
                         data=pdf_data,
@@ -94,9 +101,9 @@ if uploaded_file is not None:
                         key=f"pdf_{index}"
                     )
                 with col3:
-                    # Staff clicks this link to launch WhatsApp and send message text
-                    st.markdown(f'<a href="{whatsapp_url}" target="_blank" style="text-decoration:none;"><button style="background-color:#25D366; color:white; border:none; padding:6px 12px; border-radius:4px; cursor:pointer; width:100%;">💬 Send WhatsApp Text</button></a>', unsafe_base64=True)
+                    st.markdown(f'<a href="{whatsapp_url}" target="_blank" style="text-decoration:none;"><button style="background-color:#25D366; color:white; border:none; padding:6px 12px; border-radius:4px; cursor:pointer; width:100%;">💬 Send WhatsApp Text</button></a>', unsafe_allow_html=True)
             st.divider()
 
         except Exception as e:
-            st.error(f"Row {index} has bad data format.")
+            # This will show you exactly which column name is broken or missing!
+            st.error(f"Row {index} error: Missing or misspelled column title. Details: {str(e)}")
