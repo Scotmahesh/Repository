@@ -15,7 +15,6 @@ st.write("Upload your Excel sheet below to generate payment reminders.")
 uploaded_file = st.file_uploader("Upload your Excel file here", type=["xlsx", "xls"])
 
 if uploaded_file is not None:
-    # Read Excel file normally
     df = pd.read_excel(uploaded_file)
     current_month = datetime.now().strftime("%B %Y")
     
@@ -25,10 +24,7 @@ if uploaded_file is not None:
     # Loop through each row
     for index, row in df.iterrows():
         try:
-            # -------------------------------------------------------------
-            # ⚠️ IMPORTANT: MATCH THESE TO YOUR EXCEL FIRST ROW TITLES EXACTLY!
-            # If your Excel has different header names, change the text inside the quotes.
-            # -------------------------------------------------------------
+            # Read columns by their exact text names
             dealer_id = str(row["Dealer ID"])    # Column B
             firm_name = str(row["Firm Name"])    # Column C
             dealer_name = str(row["Dealer Name"])# Column D
@@ -38,11 +34,10 @@ if uploaded_file is not None:
             days_90 = str(row["90 days"])        # Column N
             total = str(row["Total"])            # Column O
             
-            # Assuming your phone number column is named "Mobile Number" or "Phone"
-            # CHANGE "Phone" to match your exact phone column header title!
-            phone_raw = str(row["Phone"]).strip() 
+            # --- FIXED: Using your exact header title "Phone number" ---
+            phone_raw = str(row["Phone number"]).strip() 
 
-            # Clean phone number formatting
+            # Clean phone number formatting (keep only the digits)
             phone_number = "".join(filter(str.isdigit, phone_raw))
             if not phone_number.startswith("91") and len(phone_number) == 10:
                 phone_number = "91" + phone_number
@@ -87,7 +82,7 @@ if uploaded_file is not None:
             encoded_msg = urllib.parse.quote(whatsapp_msg)
             whatsapp_url = f"https://whatsapp.com{phone_number}&text={encoded_msg}"
 
-            # Create web card layout
+            # Create web card layout for non-technical users
             with st.container():
                 col1, col2, col3 = st.columns()
                 with col1:
@@ -105,5 +100,4 @@ if uploaded_file is not None:
             st.divider()
 
         except Exception as e:
-            # This will show you exactly which column name is broken or missing!
-            st.error(f"Row {index} error: Missing or misspelled column title. Details: {str(e)}")
+            st.error(f"Row {index} error: Check your column header names. Details: {str(e)}")
