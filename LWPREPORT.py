@@ -34,7 +34,7 @@ if uploaded_file is not None:
             days_90 = str(row["90 days"])        # Column N
             total = str(row["Total"])            # Column O
             
-            # --- FIXED: Using your exact header title "Phone number" ---
+            # Using your exact header title "Phone number"
             phone_raw = str(row["Phone number"]).strip() 
 
             # Clean phone number formatting (keep only the digits)
@@ -82,9 +82,9 @@ if uploaded_file is not None:
             encoded_msg = urllib.parse.quote(whatsapp_msg)
             whatsapp_url = f"https://whatsapp.com{phone_number}&text={encoded_msg}"
 
-            # Create web card layout for non-technical users
+            # --- FIXED: Added the number 3 inside st.columns() to prevent layout errors ---
             with st.container():
-                col1, col2, col3 = st.columns()
+                col1, col2, col3 = st.columns(3)
                 with col1:
                     st.write(f"**{dealer_name}** ({firm_name})")
                 with col2:
